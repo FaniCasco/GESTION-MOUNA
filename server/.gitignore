@@ -1,0 +1,27 @@
+/node_modules/    # Librerías de Node.js
+node_modules
+/dist/            # Archivos de distribución (builds)
+/build/           # Carpeta de construcción
+/.next/           # Carpeta de builds de Next.js
+/.vercel/         # Archivos de configuración de Vercel
+.env              # Variables de entorno
+.env.local        # Variables locales
+# Node.js
+node_modules/
+dist/
+build/
+
+# Entornos
+.env
+.env.local
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Otros
+*.tmp
+*.swp

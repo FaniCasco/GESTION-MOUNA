@@ -1,0 +1,7 @@
+/node_modules/    # Librerías de Node.js
+/dist/            # Archivos de distribución (builds)
+/build/           # Carpeta de construcción
+/.next/           # Carpeta de builds de Next.js
+/.vercel/         # Archivos de configuración de Vercel
+.env              # Variables de entorno
+.env.local        # Variables locales
