@@ -1,18 +1,13 @@
-//server/src/app.js
-import express from 'express';
-//import Cliente from './models/Cliente.js'; 
-import { sequelize, testDBConnection } from './db.js'; 
+import { sequelize, testDBConnection } from './config/db.js'; 
 import cors from 'cors';
 import clientesRoutes from './routes/clientes.routes.js';
+import express from 'express';
 
+const app = express(); // 🔥 Primero creás app
 
-app.use('/clientes', clientesRoutes);
-
-
-
-const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/clientes', clientesRoutes); // 🔥 Ahora sí usás app
 
 // Testear conexión a la base
 testDBConnection();
