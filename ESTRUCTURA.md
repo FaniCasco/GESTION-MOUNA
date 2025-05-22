@@ -1,0 +1,51 @@
+```
+└── 📁gestion
+    └── 📁public
+        └── favicon.ico
+        └── index.html
+        └── manifest.json
+    └── 📁src
+        └── App.css
+        └── App.js
+        └── App.test.js
+        └── 📁assets
+        └── 📁components
+            └── Button.jsx
+            └── Clientes.jsx
+            └── Loader.jsx
+            └── Modal.jsx
+            └── Navbar.jsx
+            └── Proveedores.jsx
+            └── Sidebar.jsx
+            └── Ventas.jsx
+        └── index.css
+        └── index.js
+        └── 📁redux
+            └── 📁actions
+                └── actionTypes.js
+                └── clientesActions.js
+            └── 📁reducers
+                └── clientesReducer.js
+            └── store.js
+        └── reportWebVitals.js
+    └── .env
+    └── .gitignore
+    └── package-lock.json
+    └── package.json
+    └── README.md
+└── 📁server
+    └── 📁src
+        └── app.js
+        └── 📁config
+            └── db.js
+        └── 📁controllers
+            └── clientesController.js
+        └── 📁models
+            └── Cliente.js
+        └── 📁routes
+            └── clientes.routes.js
+    └── .env
+    └── .gitignore
+    └── package-lock.json
+    └── package.json
+```

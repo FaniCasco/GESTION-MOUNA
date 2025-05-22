@@ -1,3 +1,4 @@
+/* gestion/src/index.css */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +6,50 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa; /* Un fondo claro general */
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Estilos pastel rosa */
+:root {
+  --pastel-pink-light: #f8d7da; /* Rosa pastel muy claro */
+  --pastel-pink-medium: #f5d5d9; /* Rosa pastel medio */
+  --pastel-pink-dark: #81222c; /* Rosa pastel un poco más oscuro */
+  --primary-color: var(--pastel-pink-medium); /* Color primario basado en pastel */
+  --secondary-color: #e9ecef; /* Gris claro para contraste */
+  --danger-color: #dc3545; /* Rojo estándar de Bootstrap para peligro */
+  --warning-color: #ffc107; /* Amarillo estándar de Bootstrap para advertencia */
+  --success-color: #28a745; /* Verde estándar de Bootstrap para éxito */
+  --pastel-green: #50b991;
+  --pastel-orange: orange;
+  --pastel-azul: #A0C4E7;
+  --pastel-coral:#FF9AA2;
+  --pastel-lavanda: #C7CEEA;
+}
+
+/* Sobrescribir variables de Bootstrap (opcional, si quieres que tus colores pastel sean los principales) */
+/*
+.btn-primary {
+  --bs-btn-bg: var(--primary-color);
+  --bs-btn-border-color: var(--primary-color);
+  --bs-btn-hover-bg: var(--pastel-pink-dark);
+  --bs-btn-hover-border-color: var(--pastel-pink-dark);
+}
+*/
+
+/* Estilos para el contenedor principal con sidebar */
+.container-fluid {
+    padding-top: 20px; /* Espacio debajo de la navbar */
+}
+
+.sidebar-col {
+    padding: 0; /* Eliminar padding por defecto de la columna */
+}
+
+.content-col {
+    padding-left: 20px; /* Espacio entre sidebar y contenido */
 }

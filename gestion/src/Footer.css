@@ -1,0 +1,116 @@
+/* App.css */
+.footer {
+  font-family: "Karla", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.footer-pastel {
+  background-color: var(--pastel-pink-light);
+  padding: 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-col {
+  flex: 1;
+  padding: 0 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.footer-col:last-child {
+  border-right: none;
+}
+
+.footer-title {
+  color: var(--pastel-pink-dark);
+  font-size: 1.3rem; /* Aumentado de 1.1rem */
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+}
+
+.footer-contact {
+  color: #6d3b47;
+  font-size: 1.1rem; /* Aumentado de 0.9rem */
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*.footer-text,
+.footer-contact p {
+  color: #6d3b47;
+  font-size: 0.9rem;
+  font-weight: 300;
+  line-height: 1.6;
+  margin: 0.5rem;
+  font-family: "Karla", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+padding: 10px 0;
+}*/
+
+
+.copyright-text {
+  color: #6d3b47;
+  font-size: 1rem; /* Aumentado de 0.8rem */
+  opacity: 0.9;
+  margin: 0;
+  line-height: 1.4;
+}
+.mouna-text {
+  color: #6d3b47;
+  font-size: 1rem; /* Aumentado de 0.8rem */
+  opacity: 0.9;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: bold;
+}
+
+.social-icons {
+  gap: 1.8rem; /* Aumentado el espacio entre iconos */
+  
+}
+
+.social-link {
+  transition: transform 0.3s ease;
+  color: #6d3b47;
+}
+.social-link:hover {
+  transform: translateY(-3px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-col {
+    width: 100%;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    min-height: auto;
+  }
+  
+  .footer-title {
+    font-size: 1.2rem;
+  }
+    .footer-contact {
+    font-size: 1rem;
+  }
+  
+  .copyright-text {
+    font-size: 0.95rem;
+  }
+  
+  .social-icons {
+    gap: 1.5rem;
+  }
+}

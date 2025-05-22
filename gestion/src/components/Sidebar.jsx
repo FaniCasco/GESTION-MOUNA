@@ -1,25 +1,37 @@
-import { Link } from "react-router-dom";
+// gestion/src/components/Sidebar.jsx
+import React from 'react';
+import { Nav } from 'react-bootstrap';
+import { Link } from 'react-router-dom'; // Importa Link de react-router-dom
 
-const Sidebar = () => {
+import {
+  FaUsers,
+  FaDollyFlatbed,
+  FaShoppingCart,
+  FaBox
+} from 'react-icons/fa';
+
+function Sidebar() {
   return (
-    <div className="bg-light border-end vh-100 p-3" style={{ width: "220px" }}>
-      <h5 className="text-center mb-4">Menú</h5>
-      <ul className="nav flex-column">
-        <li className="nav-item mb-2">
-          <Link className="nav-link text-dark" to="/">Inicio</Link>
-        </li>
-        <li className="nav-item mb-2">
-          <Link className="nav-link text-dark" to="/clientes">Clientes</Link>
-        </li>
-        <li className="nav-item mb-2">
-          <Link className="nav-link text-dark" to="/proveedores">Proveedores</Link>
-        </li>
-        <li className="nav-item mb-2">
-          <Link className="nav-link text-dark" to="/ventas">Ventas</Link>
-        </li>
-      </ul>
-    </div>
+    <Nav className="flex-column sidebar">
+      {/* Usamos Nav.Link y le decimos que se renderice como Link */}
+      <Nav.Link as={Link} to="/clientes">
+        <FaUsers className="me-2" /> Clientes
+      </Nav.Link>
+       <Nav.Link as={Link} to="/productos">
+        <FaBox className="me-2" /> Productos
+      </Nav.Link>
+      <Nav.Link as={Link} to="/proveedores">
+        <FaDollyFlatbed className="me-2" /> Proveedores
+      </Nav.Link>
+       <Nav.Link as={Link} to="/stock">
+         <FaDollyFlatbed className="me-2" /> Stock
+       </Nav.Link>
+      <Nav.Link as={Link} to="/ventas">
+        <FaShoppingCart className="me-2" /> Ventas
+      </Nav.Link>
+      {/* Agrega más enlaces según tus necesidades */}
+    </Nav>
   );
-};
+}
 
 export default Sidebar;

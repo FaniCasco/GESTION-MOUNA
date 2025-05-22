@@ -1,29 +1,61 @@
-import { Link } from "react-router-dom";
+import React from 'react';
+import { Navbar as BootstrapNavbar, Container, Nav } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
-const Navbar = () => {
+function Navbar() {
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
-      <Link className="navbar-brand" to="/">Mouna</Link>
+    <BootstrapNavbar id="main-nav" expand="lg" className="nav-with-cards">
+      <Container fluid>
+        <BootstrapNavbar.Brand as={Link} to="/">
+          
+        </BootstrapNavbar.Brand>
 
-      <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span className="navbar-toggler-icon"></span>
-      </button>
+        <BootstrapNavbar.Toggle aria-controls="nav-cards" />
 
-      <div className="collapse navbar-collapse" id="navbarNav">
-        <ul className="navbar-nav ms-auto">
-          <li className="nav-item">
-            <Link className="nav-link" to="/clientes">Clientes</Link>
-          </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/proveedores">Proveedores</Link>
-          </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/ventas">Ventas</Link>
-          </li>
-        </ul>
-      </div>
-    </nav>
+        <BootstrapNavbar.Collapse id="nav-cards">
+          <div className="nav-cards-container">
+            <Nav className="mx-auto"> {/* Centra las cards */}
+              <Nav.Item className="nav-card-item">
+                <Link to="/clientes" className="nav-card pastel-blue">
+                  <div className="card-content">
+                    <h3>CLIENTES</h3>
+                    <p>Registro de clientes</p>
+                  </div>
+                </Link>
+              </Nav.Item>
+
+              <Nav.Item className="nav-card-item">
+                <Link to="/proveedores" className="nav-card pastel-green">
+                 <div className="card-content">
+                  <h3>PROVEEDORES</h3>
+                  <p>Registro de proveedores</p>
+                  </div>
+                </Link>
+              </Nav.Item>
+
+              <Nav.Item className="nav-card-item">
+                <Link to="/ventas" className="nav-card pastel-coral">
+                     <div className="card-content">
+                  <h3>VENTAS</h3>
+                  <p>Registro de ventas</p>
+                  </div>
+                </Link>
+              </Nav.Item>
+
+              <Nav.Item className="nav-card-item">
+                <Link to="/stock" className="nav-card pastel-lavanda">
+                     <div className="card-content">
+                  <h3>STOCK</h3>
+                  <p>Control de existencias</p>
+                  </div>
+                </Link>
+              </Nav.Item>
+            </Nav>
+          </div>
+        </BootstrapNavbar.Collapse>
+      </Container>
+    </BootstrapNavbar>
   );
-};
+}
 
 export default Navbar;

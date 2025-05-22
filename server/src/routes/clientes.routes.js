@@ -1,20 +1,19 @@
-//server/src/routes/clientes.routes.js
-import { Router } from "express";
+// server/src/routes/clientes.routes.js
+import { Router } from 'express';
+import {
+  getClientes,
+  getClienteById,
+  createCliente,
+  updateCliente,
+  deleteCliente
+} from '../controllers/clientesController.js'; // Importa funciones específicas usando import
 
 const router = Router();
 
-// Ruta de prueba
-router.get("/", (req, res) => {
-  res.json({ message: "Ruta de clientes funcionando" });
-});
-router.get('/', async (req, res) => {
-  try {
-    const clientes = await Cliente.findAll();
-    res.json(clientes);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los clientes' });
-  }
-});
+router.get('/', getClientes);
+router.get('/:id', getClienteById);
+router.post('/', createCliente);
+router.put('/:id', updateCliente);
+router.delete('/:id', deleteCliente);
 
-
-export default router;
+export default router; // Exporta el router usando export default

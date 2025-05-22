@@ -25,3 +25,8 @@ Thumbs.db
 # Otros
 *.tmp
 *.swp
+
+node_modules/
+.env
+dist/
+npm-debug.log*
