@@ -1,24 +1,20 @@
-// server/models/venta.js
 import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class Venta extends Model {
     static associate(models) {
-  Venta.belongsTo(models.Cliente, {
-    foreignKey: 'cliente_id',
-    as: 'cliente'
-  });
+      Venta.belongsTo(models.Cliente, {
+        foreignKey: 'cliente_id',
+        as: 'cliente'
+      });
 
-  // Relación con DetalleVenta (CORRECTO)
-  Venta.hasMany(models.DetalleVenta, {
-    foreignKey: 'venta_id',
-    as: 'detalles'
-  });
-
-      // Eliminamos la asociación belongsTo con Producto y Proveedor aquí
-      // Ya que la relación con Producto/Proveedor ahora va a través de DetalleVenta
+      Venta.hasMany(models.DetalleVenta, {
+        foreignKey: 'venta_id',
+        as: 'detalles'
+      });
     }
   }
+
   Venta.init({
     id: {
       type: DataTypes.INTEGER,
@@ -31,9 +27,6 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: DataTypes.NOW
     },
-    // !!! ELIMINAMOS producto_id, unidad, proveedor_id, lista1, lista2, lista3 DE AQUÍ !!!
-    // Estas columnas ahora irán en la tabla detalle_ventas
-
     total: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
@@ -46,12 +39,27 @@ export default (sequelize, DataTypes) => {
         model: 'clientes',
         key: 'id'
       }
+    },
+    metodo_pago: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    monto_pagado: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00
+    },
+    monto_deuda: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00
     }
   }, {
     sequelize,
     modelName: 'Venta',
     tableName: 'ventas',
-    timestamps: false, // Ajusta si tus tablas tienen createdAt/updatedAt
+    timestamps: false
   });
+
   return Venta;
 };

@@ -1,3 +1,4 @@
+// server/models/DetalleVenta.js
 import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
@@ -7,37 +8,37 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'venta_id',
         as: 'venta'
       });
-      DetalleVenta.belongsTo(models.Producto, {
-        foreignKey: 'producto_id',
-        as: 'producto'
-      });
     }
   }
+
   DetalleVenta.init({
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
     venta_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'ventas',
-        key: 'id'
-      }
+      allowNull: false
     },
-    producto_id: {
+    producto: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    cantidad: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'productos',
-        key: 'id'
-      }
+      allowNull: false
     },
-    cantidad: DataTypes.INTEGER,
-    precio_unitario: DataTypes.DECIMAL(10, 2),
-    subtotal: DataTypes.DECIMAL(10, 2)
+    precio_unitario: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false
+    }
   }, {
     sequelize,
     modelName: 'DetalleVenta',
     tableName: 'detalle_ventas',
     timestamps: false
   });
+
   return DetalleVenta;
 };

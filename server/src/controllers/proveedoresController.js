@@ -1,95 +1,56 @@
 // server/src/controllers/proveedoresController.js
 import db from '../../models/index.js';
-
 const { Proveedor } = db;
 
+// Obtener todos los proveedores
 export const getProveedores = async (req, res) => {
   try {
-    const proveedores = await db.Proveedor.findAll({
-      attributes: ['id', 'empresa', 'telefono', 'cbu', 'ciudad', 'direccion']
-    });
-    
+    const proveedores = await Proveedor.findAll();
     res.json(proveedores);
-    
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({
-      error: 'Error al obtener proveedores',
-      detalles: process.env.NODE_ENV === 'development' ? error.message : null
-    });
-  }
-};
-export const getProveedorById = async (req, res) => {
-  try {
-    const proveedor = await Proveedor.findByPk(req.params.id);
-    if (!proveedor) {
-      return res.status(404).json({ msg: 'Proveedor no encontrado' });
-    }
-    res.json(proveedor);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error al obtener proveedores:', err);
+    res.status(500).json({ error: 'Error al obtener proveedores' });
   }
 };
 
+// Crear proveedor
 export const createProveedor = async (req, res) => {
   const { empresa, telefono, cbu, ciudad, direccion } = req.body;
   try {
-    // Opcional: Verificar si el proveedor ya existe por algún criterio (ej. empresa y ciudad)
-    // let proveedor = await Proveedor.findOne({ where: { empresa, ciudad } });
-    // if (proveedor) {
-    //   return res.status(400).json({ msg: 'El proveedor ya existe' });
-    // }
-
-    const nuevoProveedor = await Proveedor.create({
-      empresa,
-      telefono,
-      cbu,
-      ciudad,
-      direccion
-    });
-    res.json(nuevoProveedor);
+    const nuevo = await Proveedor.create({ empresa, telefono, cbu, ciudad, direccion });
+    res.status(201).json(nuevo);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error al crear proveedor:', err);
+    res.status(500).json({ msg: 'No se pudo crear el proveedor' });
   }
 };
 
+// Actualizar proveedor
 export const updateProveedor = async (req, res) => {
-  const { empresa, telefono, cbu, ciudad, direccion } = req.body;
-  const proveedorId = req.params.id;
+  const { id } = req.params;
   try {
-    let proveedor = await Proveedor.findByPk(proveedorId);
-    if (!proveedor) {
-      return res.status(404).json({ msg: 'Proveedor no encontrado' });
-    }
+    const proveedor = await Proveedor.findByPk(id);
+    if (!proveedor) return res.status(404).json({ msg: 'Proveedor no encontrado' });
 
-    await proveedor.update({
-      empresa: empresa !== undefined ? empresa : proveedor.empresa,
-      telefono: telefono !== undefined ? telefono : proveedor.telefono,
-      cbu: cbu !== undefined ? cbu : proveedor.cbu,
-      ciudad: ciudad !== undefined ? ciudad : proveedor.ciudad,
-      direccion: direccion !== undefined ? direccion : proveedor.direccion
-    });
-    await proveedor.reload();
+    await proveedor.update(req.body);
     res.json(proveedor);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error al actualizar proveedor:', err);
+    res.status(500).json({ msg: 'Error al actualizar' });
   }
 };
 
+// Eliminar proveedor
 export const deleteProveedor = async (req, res) => {
-  const proveedorId = req.params.id;
+  const { id } = req.params;
   try {
-    const proveedor = await Proveedor.findByPk(proveedorId);
-    if (!proveedor) {
-      return res.status(404).json({ msg: 'Proveedor no encontrado' });
-    }
+    const proveedor = await Proveedor.findByPk(id);
+    if (!proveedor) return res.status(404).json({ msg: 'Proveedor no encontrado' });
+
     await proveedor.destroy();
     res.json({ msg: 'Proveedor eliminado' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error al eliminar proveedor:', err);
+    res.status(500).json({ msg: 'Error al eliminar' });
   }
 };

@@ -50,6 +50,16 @@ function Navbar() {
                   </div>
                 </Link>
               </Nav.Item>
+
+              <Nav.Item className="nav-card-item">
+                <Link to="/productos" className="nav-card pastel-pink">
+                     <div className="card-content">
+                  <h3>PRODUCTOS</h3>
+                  <p>Registro de productos</p>
+                  </div>
+                </Link>
+              </Nav.Item>
+              
             </Nav>
           </div>
         </BootstrapNavbar.Collapse>

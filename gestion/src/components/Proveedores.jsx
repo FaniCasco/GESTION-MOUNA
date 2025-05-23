@@ -8,6 +8,8 @@ import {
   deleteProveedor,
 } from '../redux/actions/proveedoresActions';
 import '../Proveedores.css';
+import { FaEdit, FaTrash } from 'react-icons/fa';
+import Button from 'react-bootstrap/Button';
 
 const Proveedores = ({
   proveedores,
@@ -76,14 +78,15 @@ const Proveedores = ({
 
   return (
     <div className="proveedores-container">
-      <div className="header-section">
+      <div className="header-section header-proveedores">
         <h1 className="titulo-principal">Gestión de Proveedores</h1>
-        <button 
-          className={`btn ${showForm ? 'btn-danger' : 'btn-success'} btn-lg`}
+        <button
+          className={`btn ${showForm ? 'btn-cancelar-moderno' : 'btn-primario-moderno'}`}
           onClick={() => setShowForm(!showForm)}
           disabled={loading}
         >
-          {showForm ? '✖ Cancelar' : '➕ Nuevo Proveedor'}
+          <i className={`fas ${showForm ? 'fa-times' : 'fa-plus-circle'} me-2`}></i>
+          {showForm ? 'Cancelar' : 'Agregar Proveedor'}
         </button>
       </div>
 
@@ -126,7 +129,7 @@ const Proveedores = ({
 
                 <div className="col-md-6">
                   <div className="form-group">
-                    <label>CBU/CVU</label>
+                    <label>CBU/CVU/ALIAS</label>
                     <input
                       type="text"
                       className="form-control input-moderno"
@@ -196,9 +199,11 @@ const Proveedores = ({
       <div className="listado-section card mt-4">
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="titulo-seccion-listado mb-0">📋 Listado de Proveedores</h2>
-            <small className="text-muted">
-              {proveedores.length} proveedores registrados
+            <h3 className="titulo-seccion-listado mb-0">
+              <i className="fas fa-clipboard-list me-2"></i>Listado de Proveedores
+            </h3>
+            <small className="text-muted badge bg-light text-dark">
+              Registrados: {proveedores.length}
             </small>
           </div>
 
@@ -206,7 +211,7 @@ const Proveedores = ({
             <div className="empty-state">
               <div className="empty-state-icon">📭</div>
               <p className="empty-state-text">No hay proveedores registrados</p>
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={() => setShowForm(true)}
               >
@@ -214,59 +219,101 @@ const Proveedores = ({
               </button>
             </div>
           ) : (
-            <div className="listado-proveedores">
-              {proveedores.map((prov) => (
-                <div key={prov.id} className="proveedor-item card mb-3">
-                  <div className="card-body">
-                    <div className="proveedor-header">
-                      <span className="proveedor-id badge bg-secondary">
-                        ID: {prov.id}
-                      </span>
-                      <h3 className="proveedor-nombre mt-2">{prov.empresa}</h3>
-                    </div>
+            <div className="table-responsive">
+              <table className="table table-hover align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th scope="col" className="ps-4">ID</th>
+                    <th scope="col" className="ps-4">Empresa</th>
+                    <th scope="col" className="ps-4">Teléfono</th>
+                    <th scope="col" className="ps-4">Ubicación</th>
+                    <th scope="col" className="ps-4">Dirección</th>
+                    <th scope="col" className="ps-4">Cbu/Cvu/Alias</th>
+                    <th scope="col" className="pe-4 text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {proveedores.map((prov) => (
+                    <tr key={prov.id} className="proveedor-row">
+                      {/* ID */}
+                      <td className="ps-4 fw-medium text-primary">#{prov.id}</td>
 
-                    <div className="proveedor-detalles mt-3">
-                      <div className="detalle-item">
-                        <span className="detalle-icono">📞</span>
-                        <span className="detalle-texto">{prov.telefono}</span>
-                      </div>
-                      
-                      {prov.ciudad && (
-                        <div className="detalle-item">
-                          <span className="detalle-icono">📍</span>
-                          <span className="detalle-texto">{prov.ciudad}</span>
+                      {/* Empresa */}
+                      <td className="ps-4">
+                        <div className="d-flex align-items-center gap-3">
+                          <div className="icon-circle bg-primary text-white">
+                            <i className="fas fa-building"></i>
+                          </div>
+                          <span className="fw-medium">{prov.empresa}</span>
                         </div>
-                      )}
-                      
-                      {prov.direccion && (
-                        <div className="detalle-item">
-                          <span className="detalle-icono">🏢</span>
-                          <span className="detalle-texto">{prov.direccion}</span>
-                        </div>
-                      )}
-                    </div>
+                      </td>
 
-                    <div className="proveedor-acciones mt-3">
-                      <button
-                        className="btn btn-outline-primary btn-sm accion-editar"
-                        onClick={() => handleEdit(prov)}
-                      >
-                        ✏️ Editar
-                      </button>
-                      <button
-                        className="btn btn-outline-danger btn-sm accion-eliminar ms-2"
-                        onClick={() => {
-                          if(window.confirm('¿Confirmar eliminación?')) {
-                            deleteProveedor(prov.id);
-                          }
-                        }}
-                      >
-                        🗑️ Eliminar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      {/* Teléfono */}
+                      <td className="ps-4">
+                        <div className="d-flex align-items-center gap-2">
+                          <i className="fas fa-phone text-muted"></i>
+                          {prov.telefono}
+                        </div>
+                      </td>
+
+                      {/* Ubicación */}
+                      <td className="ps-4">
+                        {prov.ciudad && (
+                          <div className="d-flex align-items-center gap-2">
+                            <i className="fas fa-map-marker-alt text-danger"></i>
+                            {prov.ciudad}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Dirección */}
+                      <td className="ps-4">
+                        {prov.direccion && (
+                          <div className="d-flex align-items-center gap-2">
+                            <i className="fas fa-map-pin text-success"></i>
+                            {prov.direccion}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* CBU */}
+                      <td className="ps-4">
+                        {prov.cbu && (
+                          <div className="d-flex align-items-center gap-2">
+                            <i className="fas fa-university text-success"></i>
+                            <span className="font-monospace">{prov.cbu}</span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="pe-4 text-end">
+                        <div className="d-flex align-items-center justify-content-end gap-2">
+                          <Button
+                            variant="success"
+                            size="sm"
+                            onClick={() => handleEdit(prov)}
+                            className="me-1"
+                          >
+                            <FaEdit className="text-white" />
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => {
+                              if (window.confirm('¿Confirmar eliminación?')) {
+                                deleteProveedor(prov.id);
+                              }
+                            }}
+                          >
+                            <FaTrash className="text-white" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

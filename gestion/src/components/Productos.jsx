@@ -54,10 +54,10 @@ function Productos() {
   });
 
   // Cargar productos y proveedores al montar el componente
-useEffect(() => {
-  dispatch(getProductos());
-  dispatch(getProveedores()); // ← Despachar acción de proveedores
-}, [dispatch]);
+  useEffect(() => {
+    dispatch(getProductos());
+    dispatch(getProveedores());
+  }, [dispatch]);
 
   console.log("Proveedores cargados:", proveedores);
   console.log("Estado completo de Redux:", useSelector(state => state));
@@ -101,11 +101,8 @@ useEffect(() => {
     setModalMode(MODAL_MODES.EDIT);
     setCurrentProducto(producto);
     setFormData({
-      codigo: producto.codigo,
-      nombre: producto.nombre,
-      unidad: producto.unidad,
-      precio: producto.precio,
-      proveedor_id: producto.proveedor_id
+      ...producto, // ← Usar spread operator para capturar todos los campos
+      proveedor_id: producto.proveedor_id || null // ← Asegurar valor null
     });
     setShowModal(true);
   }, []);
@@ -167,6 +164,8 @@ useEffect(() => {
     }
   }, [dispatch, formData, modalMode, currentProducto, handleCloseModal]);
 
+
+  
   const handleDeleteProducto = useCallback((productoId) => {
     MySwal.fire({
       title: '¿Estás seguro?',
@@ -264,10 +263,10 @@ useEffect(() => {
           >
             <option value="">Seleccione una unidad</option>
             <option value="kg">Kilogramos (kg)</option>
-            <option value="g">Gramos (g)</option>
-            <option value="l">Litros (l)</option>
-            <option value="ml">Mililitros (ml)</option>
-            <option value="unidad">Unidad</option>
+            <option value="gm">Gramos (gramos)</option>
+            <option value="ltr">Litros (litro)</option>
+            <option value="ml">Mililitros (mililitros)</option>
+            <option value="uni">Unidad</option>
           </Form.Select>
         </Form.Group>
 
@@ -284,11 +283,12 @@ useEffect(() => {
           />
         </Form.Group>
 
+
         <Form.Group className="mb-3">
           <Form.Label>Proveedor</Form.Label>
           <Form.Select
             name="proveedor_id"
-            value={formData.proveedor_id ?? ''}
+            value={formData.proveedor_id || ''} // Maneja null correctamente
             onChange={(e) => {
               const value = e.target.value;
               setFormData(prev => ({
@@ -297,13 +297,14 @@ useEffect(() => {
               }));
             }}
           >
-            <option value="">Seleccione un proveedor</option>
+            <option value="">Sin proveedor asignado</option>
             {proveedores?.map(proveedor => (
               <option
                 key={proveedor.id}
                 value={proveedor.id}
+                selected={proveedor.id === formData.proveedor_id}
               >
-                {proveedor.empresa}
+                {proveedor.empresa} ({proveedor.id})
               </option>
             ))}
           </Form.Select>
@@ -374,7 +375,11 @@ useEffect(() => {
                   <td>{producto.nombre || 'Sin nombre'}</td>
                   <td>{producto.unidad || 'N/A'}</td>
                   <td>${Number(producto.precio || 0).toFixed(2)}</td>
-                  <td>{producto.proveedor ? producto.proveedor.empresa : 'N/A'}</td>
+                  <td>
+                    {producto.proveedor_id ? (
+                      proveedores.find(p => p.id === producto.proveedor_id)?.empresa || 'Proveedor eliminado'
+                    ) : 'Sin proveedor'}
+                  </td>
                   <td>
                     <Button
                       variant="info"

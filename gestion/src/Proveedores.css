@@ -1,36 +1,303 @@
-/* Proveedores.css */
-.proveedores-container {
-  padding: 2rem;
-}
-
-.formulario-section {
+/* Proveedores.css - Agrega estos estilos */
+.proveedor-card {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
   transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.75rem;
 }
 
-.animate__fadeIn {
-  animation: fadeIn 0.5s;
+.proveedor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+.hover-effect:hover {
+  cursor: pointer;
+}
+
+.titulo-seccion-listado {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.dropdown-menu {
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
 
 .empty-state {
+  padding: 3rem;
   text-align: center;
-  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 0.75rem;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
   color: #6c757d;
 }
 
-.proveedor-item {
-  transition: transform 0.2s;
+
+.btn-success {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  background-color: #28a745;
+  border-color: #28a745;
 }
 
-.proveedor-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
 }
 
-.required {
-  color: #dc3545;
+
+.proveedor-row {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+}
+
+.proveedor-row:hover {
+  background-color: #f8f9fa;
+  transform: scale(1.005);
+}
+
+
+.icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bg-primary-gradient {
+  background: linear-gradient(45deg, #4e73df, #224abe);
+}
+
+
+.table-hover>tbody>tr:hover {
+  --bs-table-accent-bg: rgba(78, 115, 223, 0.04);
+}
+
+.table thead th {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #dee2e6;
+  text-align: left;
+}
+
+
+.table td {
+  text-align: left !important;
+  /* Fuerza alineación izquierda en celdas */
+}
+
+/* Asegura la alineación vertical en celdas con íconos */
+.celda-con-icono {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Ajusta el padding para coincidir con encabezados */
+.table th,
+.table td {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  padding: 12px 16px !important;
+  /* Mismo padding en todas las celdas */
+  vertical-align: middle !important;
+}
+
+
+/* Mantener consistencia en paddings */
+.ps-4 {
+  padding-left: 1.5rem !important;
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+}
+
+.pe-4 {
+  padding-right: 1.5rem !important;
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+}
+
+/* Mejorar aspecto de botones */
+.btn-sm {
+  line-height: 1;
+  min-width: 32px;
+}
+
+/******/
+/* Estilos para el header */
+.header-section {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  padding: 1.5rem;
+  background: var(--pastel-green);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.header-proveedores {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.titulo-principal {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.texto-secundario {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  color: #636e72;
+  font-size: 0.95rem;
+  margin-bottom: 0;
+}
+
+/* Estilos del botón principal */
+
+.btn-primario-moderno:active {
+  transform: translateY(0);
+}
+
+
+/* Iconos */
+.icono-dinamico {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.btn-primario-moderno:hover .icono-dinamico {
+  transform: scale(1.15);
+}
+
+/* Efecto de onda al hacer clic */
+.btn-primario-moderno::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+}
+
+.btn-primario-moderno:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Estado loading */
+.btn-primario-moderno:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.fa-plus-circle {
+  font-size: 1.1rem;
+}
+
+.fa-times {
+  font-size: 1.1rem;
+}
+
+/* Agrega esto al CSS para sobrescribir Bootstrap */
+.btn.btn-primario-moderno {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  margin-top: 10px;
+  background: #047ffa !important;
+  color: white !important;
+}
+
+.btn.btn-cancelar-moderno {
+  font-family: "Karla", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  margin-top: 10px;
+  background: #f71c04 !important;
+
+  color: white !important;
+}
+
+/* Mantén el resto de los estilos hover */
+.btn.btn-primario-moderno:hover {
+  background: #34495e !important;
+
+}
+
+.btn.btn-cancelar-moderno:hover {
+  background: #921102 !important;
+  color: white !important;
+
+}
+
+.icono-editar {
+background-color: #28a745 !important; /* Verde */
+  border: none !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+ 
+}
+
+.icono-editar i {
+   font-weight: 100;
+  color: white !important;
+  font-size: 14px;
+}
+
+.icono-eliminar {
+background-color: #f80303 !important; /* Verde */
+  border: none !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+ 
+}
+
+.icono-eliminar i {
+   
+  color: white !important;
+  font-size: 14px;
 }

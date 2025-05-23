@@ -321,7 +321,6 @@ function Clientes() {
               <th>Nombre y Apellido</th>
               <th>Dirección</th>
               <th>Teléfono</th>
-              {/* La columna Deuda Total ahora muestra el campo calculado */}
               <th>Deuda Total</th>
               <th>Acciones</th>
             </tr>
@@ -338,27 +337,27 @@ function Clientes() {
                 <td>${cliente.totalDeuda !== null && cliente.totalDeuda !== undefined ? parseFloat(cliente.totalDeuda).toFixed(2) : '0.00'}</td>
                 <td>
                   <Button
-                    variant="info"
+                    variant="primary"
                     size="sm"
                     onClick={() => handleShowViewModal(cliente)}
                     className="me-1"
                   >
-                    <FaEye /> Ver
+                    <FaEye className="text-white"/> 
                   </Button>
                   <Button
-                    variant="warning"
+                    variant="success"
                     size="sm"
                     onClick={() => handleShowEditModal(cliente)}
                     className="me-1"
                   >
-                    <FaEdit /> Editar
+                    <FaEdit className="text-white" /> 
                   </Button>
                   <Button
                     variant="danger"
                     size="sm"
                     onClick={() => handleDeleteCliente(cliente.id)}
                   >
-                    <FaTrash /> Eliminar
+                    <FaTrash className="text-white"/> 
                   </Button>
                 </td>
               </tr>
