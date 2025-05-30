@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "ParaguayS3660",
+    "database": "gestion",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "ParaguayS3660",
+    "database": "gestion",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "ParaguayS3660",
+    "database": "gestion",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
+  }
+}

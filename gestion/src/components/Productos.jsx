@@ -48,7 +48,7 @@ function Productos() {
   const [formData, setFormData] = useState({
     codigo: '',
     nombre: '',
-    unidad: '',
+    medida: '', // <--- Aquí es donde se guarda la unidad de medida
     precio: 0,
     proveedor_id: null
   });
@@ -77,7 +77,7 @@ function Productos() {
     setFormData({
       codigo: '',
       nombre: '',
-      unidad: '',
+      medida: '',
       precio: 0,
       proveedor_id: null
     });
@@ -90,7 +90,7 @@ function Productos() {
     setFormData({
       codigo: producto.codigo,
       nombre: producto.nombre,
-      unidad: producto.unidad,
+      medida: producto.medida,
       precio: producto.precio,
       proveedor_id: producto.proveedor_id
     });
@@ -113,7 +113,7 @@ function Productos() {
     setFormData({
       codigo: '',
       nombre: '',
-      unidad: '',
+      medida: '',
       precio: 0,
       proveedor_id: null
     });
@@ -165,7 +165,7 @@ function Productos() {
   }, [dispatch, formData, modalMode, currentProducto, handleCloseModal]);
 
 
-  
+
   const handleDeleteProducto = useCallback((productoId) => {
     MySwal.fire({
       title: '¿Estás seguro?',
@@ -220,7 +220,7 @@ function Productos() {
             <Col md={6}><p><strong>ID:</strong> {currentProducto.id}</p></Col>
             <Col md={6}><p><strong>Código:</strong> {currentProducto.codigo}</p></Col>
             <Col md={12}><p><strong>Nombre:</strong> {currentProducto.nombre}</p></Col>
-            <Col md={6}><p><strong>Unidad:</strong> {currentProducto.unidad || 'N/A'}</p></Col>
+            <Col md={6}><p><strong>Unidad:</strong> {currentProducto.medida || 'N/A'}</p></Col>
             <Col md={6}><p><strong>Precio:</strong> ${currentProducto.precio?.toFixed(2) || '0.00'}</p></Col>
             <Col md={6}><p><strong>Proveedor:</strong> {proveedor?.empresa || 'N/A'}</p></Col>
           </Row>
@@ -256,8 +256,8 @@ function Productos() {
         <Form.Group className="mb-3">
           <Form.Label>Unidad</Form.Label>
           <Form.Select
-            name="unidad"
-            value={formData.unidad}
+            name="medida"
+            value={formData.medida}
             onChange={handleInputChange}
             required
           >
@@ -360,7 +360,7 @@ function Productos() {
               <th>ID</th>
               <th>Código</th>
               <th>Nombre</th>
-              <th>Unidad</th>
+              <th>Unidad de medida</th>
               <th>Precio</th>
               <th>Proveedor</th>
               <th>Acciones</th>
@@ -373,7 +373,7 @@ function Productos() {
                   <td>{producto.id}</td>
                   <td>{producto.codigo || 'Sin código'}</td>
                   <td>{producto.nombre || 'Sin nombre'}</td>
-                  <td>{producto.unidad || 'N/A'}</td>
+                  <td>{producto.medida || 'N/A'}</td>
                   <td>${Number(producto.precio || 0).toFixed(2)}</td>
                   <td>
                     {producto.proveedor_id ? (
@@ -381,6 +381,7 @@ function Productos() {
                     ) : 'Sin proveedor'}
                   </td>
                   <td>
+                    
                     <Button
                       variant="info"
                       size="sm"

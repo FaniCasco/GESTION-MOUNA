@@ -1,158 +1,160 @@
 // server/src/controllers/ventasController.js
 import db from '../../models/index.js';
 import { sequelize } from '../../config/db.js';
-//import { Venta, Cliente, Producto, Proveedor, Stock, DetalleVenta } from '../../models/index.js'; // Esta línea DEBE seguir comentada o eliminada
 
-const { Venta, Cliente, Producto, Proveedor, Stock, DetalleVenta } = db; // Desestructura los modelos del objeto db importado (Mantén esta línea)
+// Desestructura los modelos del objeto db importado
+const { Venta, Cliente, Producto, Stock, DetalleVenta } = db;
 
 export const getVentas = async (req, res) => {
-  try {
-    const ventas = await Venta.findAll({
-      include: [
-        { model: Cliente, as: 'cliente' },
-        {
-          model: DetalleVenta,
-          as: 'detalles',
-          include: [{ model: Producto, as: 'producto' }] // Incluir producto en detalles
-        }
-      ]
-    });
-    res.json(ventas);
-  } catch (err) {
-    res.status(500).send('Error: ' + err.message);
-  }
+    try {
+        const ventas = await Venta.findAll({
+            include: [
+                { model: Cliente, as: 'cliente' },
+                {
+                    model: DetalleVenta,
+                    as: 'detalles',
+                    include: [{ model: Producto, as: 'producto' }]
+                }
+            ],
+            order: [['fecha', 'DESC']] // Opcional: ordenar ventas por fecha
+        });
+        res.json(ventas);
+    } catch (err) {
+        console.error('Error al obtener ventas:', err);
+        res.status(500).send('Error: ' + err.message);
+    }
 };
-
 
 export const getVentaById = async (req, res) => {
-  try {
-    // Nota: En getVentaById, quizás también quieras incluir los detalles de venta
-    // como en getVentas para ver los productos específicos vendidos en esa venta.
-    // La inclusión de Producto y Proveedor directamente en la Venta principal no es correcta
-    // porque están relacionados a través de DetalleVenta y Producto.
-    // Sugiero cambiar la inclusión a algo similar a getVentas:
-    const venta = await Venta.findByPk(req.params.id, {
-      include: [
-        { model: Cliente, as: 'cliente' },
-        {
-            model: DetalleVenta,
-            as: 'detalles',
-            include: [{ model: Producto, as: 'producto' }] // Incluir producto en detalles
+    try {
+        const venta = await Venta.findByPk(req.params.id, {
+            include: [
+                { model: Cliente, as: 'cliente' },
+                {
+                    model: DetalleVenta,
+                    as: 'detalles',
+                    include: [{ model: Producto, as: 'producto' }]
+                }
+            ]
+        });
+        if (!venta) {
+            return res.status(404).json({ msg: 'Venta no encontrada' });
         }
-        // Si necesitas info del proveedor del producto, se accede via detalles -> producto -> proveedor
-      ]
-    });
-    if (!venta) {
-      return res.status(404).json({ msg: 'Venta no encontrada' });
-    }
-    res.json(venta);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
+        res.json(venta);
+    } catch (err) {
+        console.error('Error al obtener venta por ID:', err.message);
+        res.status(500).send('Server Error');
+    }
 };
-
 
 export const createVenta = async (req, res) => {
-  // Esperamos recibir en req.body:
-  // fecha, cliente_id, detalles (array de { producto_id, cantidad, precio_unitario, subtotal }),
-  // metodo_pago, monto_pagado (opcional, si no es pago completo o si es "Debe")
-  const { fecha, cliente_id, detalles, metodo_pago, monto_pagado } = req.body;
+    const { fecha, cliente_id, detalles, metodo_pago, monto_pagado } = req.body;
 
-  const t = await sequelize.transaction();
+    // Iniciar una transacción
+    const t = await sequelize.transaction();
 
-  try {
-    // Calcular el total de la venta a partir de los detalles recibidos
-    // Esto es más seguro que confiar en un 'total' enviado desde el cliente
-    let totalCalculado = 0;
-    for (const detalle of detalles) {
-        totalCalculado += detalle.subtotal; // Asegúrate de que subtotal venga calculado o calcúlalo aquí (detalle.cantidad * detalle.precio_unitario)
+    try {
+        let totalCalculado = 0;
+        const detallesParaCrear = [];
+
+        // 1. Validar productos, calcular subtotales/total y actualizar stock
+        for (const detalleInput of detalles) {
+            const producto = await Producto.findByPk(detalleInput.producto_id, { transaction: t });
+            if (!producto) {
+                throw new Error(`Producto con ID ${detalleInput.producto_id} no encontrado.`);
+            }
+
+            const stock = await Stock.findOne({
+                where: { producto_id: detalleInput.producto_id },
+                transaction: t,
+                lock: true // Opcional: Bloquea la fila de stock para evitar condiciones de carrera.
+                           // Considera si es necesario según el volumen de transacciones.
+            });
+
+            if (!stock) {
+                throw new Error(`Stock no encontrado para el producto '${producto.nombre}' (ID: ${detalleInput.producto_id}).`);
+            }
+            if (stock.unidad < detalleInput.cantidad) {
+                throw new Error(`Stock insuficiente para el producto '${producto.nombre}'. Disponible: ${stock.unidad}, Requerido: ${detalleInput.cantidad}`);
+            }
+
+            const precioUnitarioReal = parseFloat(producto.precio);
+            const subtotal = precioUnitarioReal * detalleInput.cantidad;
+            totalCalculado += subtotal;
+
+            detallesParaCrear.push({
+                producto_id: detalleInput.producto_id,
+                cantidad: detalleInput.cantidad,
+                precio_unitario: precioUnitarioReal,
+                subtotal: subtotal
+            });
+
+            // Descontar la cantidad vendida del stock
+            stock.unidad = parseFloat(stock.unidad) - parseFloat(detalleInput.cantidad);
+            await stock.save({ transaction: t });
+        }
+
+        // 2. Determinar monto pagado y adeudado
+        const montoPagadoReal = parseFloat(monto_pagado) || 0;
+        const montoDeudaCalculado = totalCalculado - montoPagadoReal;
+        const montoDeudaFinal = montoDeudaCalculado > 0 ? montoDeudaCalculado : 0;
+
+        // 3. Crear la venta principal con todos los datos
+        const nuevaVenta = await Venta.create({
+            fecha,
+            total: totalCalculado,
+            cliente_id,
+            metodo_pago,
+            monto_pagado: montoPagadoReal,
+            monto_deuda: montoDeudaFinal
+        }, { transaction: t });
+
+        // 4. Crear los detalles de venta asociados a la nueva venta
+        // Usamos Promise.all para crear todos los detalles en paralelo dentro de la misma transacción
+        await Promise.all(detallesParaCrear.map(detalle =>
+            DetalleVenta.create({
+                venta_id: nuevaVenta.id,
+                ...detalle
+            }, { transaction: t })
+        ));
+
+        // 5. Actualizar la deuda del cliente si hay un monto adeudado
+        if (montoDeudaFinal > 0) {
+            const cliente = await Cliente.findByPk(cliente_id, { transaction: t, lock: true }); // Bloquear cliente también
+            if (!cliente) {
+                // Esto no debería ocurrir si cliente_id viene de una selección válida del frontend
+                throw new Error(`Cliente con ID ${cliente_id} no encontrado durante la actualización de deuda.`);
+            }
+            cliente.monto_deuda = parseFloat(cliente.monto_deuda || 0) + montoDeudaFinal;
+            await cliente.save({ transaction: t });
+        }
+
+        // Si todo fue bien, confirmar la transacción
+        await t.commit();
+
+        // Responder con la venta completa (incluyendo detalles y cliente)
+        res.status(201).json(await Venta.findByPk(nuevaVenta.id, {
+            include: [
+                { model: DetalleVenta, as: 'detalles', include: [{ model: Producto, as: 'producto' }] },
+                { model: Cliente, as: 'cliente' }
+            ]
+        }));
+
+    } catch (err) {
+        // Si algo falla, revertir la transacción
+        await t.rollback();
+        console.error('Error al crear la venta:', err);
+        // Devolver un mensaje de error claro al cliente
+        res.status(500).send('Error al crear la venta: ' + err.message);
     }
-
-    // Determinar monto adeudado
-    // Si monto_pagado no viene, asumimos que adeuda el total si el metodo_pago lo permite (ej: "Debe")
-    // Si viene monto_pagado, la deuda es el total menos lo pagado.
-    const montoPagadoReal = parseFloat(monto_pagado) || 0; // Convierte a número, si es null/undefined/0, se toma 0
-    const montoDeudaCalculado = totalCalculado - montoPagadoReal;
-    const montoDeudaFinal = montoDeudaCalculado > 0 ? montoDeudaCalculado : 0; // Asegura que la deuda no sea negativa
-
-    // Crear la venta principal con todos los datos
-    const nuevaVenta = await Venta.create({
-      fecha,
-      total: totalCalculado, // Usamos el total calculado
-      cliente_id,
-      metodo_pago,
-      monto_pagado: montoPagadoReal,
-      monto_deuda: montoDeudaFinal
-    }, { transaction: t });
-
-    // Crear detalles de venta y actualizar stock
-    for (const detalle of detalles) {
-        // Opcional: Recalcular subtotal aquí para mayor seguridad
-        // const subtotalCalculado = detalle.cantidad * detalle.precio_unitario;
-
-      await DetalleVenta.create({
-        venta_id: nuevaVenta.id,
-        producto_id: detalle.producto_id,
-        cantidad: detalle.cantidad,
-        precio_unitario: detalle.precio_unitario,
-        subtotal: detalle.subtotal // O usar subtotalCalculado
-      }, { transaction: t });
-
-      // Actualizar stock
-      const stock = await Stock.findOne({
-        where: { producto_id: detalle.producto_id },
-        transaction: t
-      });
-
-        if (!stock) {
-             // Si no hay stock para el producto, lanzar un error para abortar la transacción
-             throw new Error(`Stock no encontrado para el producto con ID ${detalle.producto_id}`);
-        }
-
-        if (stock.unidad < detalle.cantidad) {
-            // Opcional: Validar si hay suficiente stock ANTES de descontar
-            throw new Error(`Stock insuficiente para el producto con ID ${detalle.producto_id}. Disponible: ${stock.unidad}, Requerido: ${detalle.cantidad}`);
-        }
-
-      stock.unidad -= detalle.cantidad;
-      await stock.save({ transaction: t });
-    }
-
-    // Si todo sale bien, confirmar la transacción
-    await t.commit();
-
-    // Respuesta exitosa, opcionalmente puedes devolver la venta completa con detalles
-    res.status(201).json(await Venta.findByPk(nuevaVenta.id, {
-      include: [
-            { model: DetalleVenta, as: 'detalles', include: [{ model: Producto, as: 'producto' }] },
-            { model: Cliente, as: 'cliente' } // Incluir cliente en la respuesta final si es útil
-        ]
-    }));
-
-  } catch (err) {
-    // Si hay algún error, revertir la transacción
-    await t.rollback();
-    console.error('Error al crear la venta:', err); // Loguea el error en el servidor
-    res.status(500).send('Error al crear la venta: ' + err.message); // Envía el mensaje de error al cliente
-  }
 };
 
-// @route   PUT /api/ventas/:id
-// @desc    Actualizar una venta (NOTA: Actualizar ventas y stock es complejo y NO implementado aquí)
-// @access  Public
+// Las funciones updateVenta y deleteVenta quedan como marcadores de posición,
+// ya que su implementación con ajuste de stock es más compleja y depende de la lógica de negocio.
 export const updateVenta = async (req, res) => {
-    res.status(501).json({ msg: "La actualización de ventas con ajuste de stock no está implementada." });
-    // Mantienes este placeholder por ahora
+    res.status(501).json({ msg: "La actualización de ventas con ajuste de stock no está implementada." });
 };
 
-
-// @route   DELETE /api/ventas/:id
-// @desc    Eliminar una venta (NOTA: Eliminar ventas y ajustar stock es complejo y NO implementado aquí)
-// @access  Public
 export const deleteVenta = async (req, res) => {
-    // La lógica para eliminar una venta y REVERTIR el stock (devolver la cantidad vendida al stock)
-    // también es compleja y requiere transacciones.
-    res.status(501).json({ msg: "La eliminación de ventas con ajuste de stock no está implementada." });
-    // Mantienes este placeholder por ahora
+    res.status(501).json({ msg: "La eliminación de ventas con ajuste de stock no está implementada." });
 };

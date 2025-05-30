@@ -8,6 +8,11 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'venta_id',
         as: 'venta'
       });
+  
+      DetalleVenta.belongsTo(models.Producto, {
+        foreignKey: 'producto_id', 
+        as: 'producto'
+      });
     }
   }
 
@@ -21,15 +26,24 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    producto: {
-      type: DataTypes.STRING,
-      allowNull: false
+  
+    producto_id: { 
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'productos', 
+        key: 'id'
+      }
     },
     cantidad: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    precio_unitario: {
+    precio_unitario: { 
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false
+    },
+    subtotal: { 
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     }

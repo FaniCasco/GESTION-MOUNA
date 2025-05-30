@@ -1,18 +1,19 @@
 // gestion/src/components/Ventas.jsx
-import React, { useEffect, useState, useCallback } from 'react';
+// gestion/src/components/Ventas.jsx
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getVentas, addVenta } from '../redux/actions/ventasActions';
-import { getStock } from '../redux/actions/stockActions'; // Asumo que stockItems incluye la relación con producto
+import { getStock } from '../redux/actions/stockActions';
 import { getClientes } from '../redux/actions/clientesActions';
 
 import Loader from './Loader';
 import Modal from './Modal';
 import Button from './Button';
 
-import { Table, Form, Row, Col} from 'react-bootstrap';
+import { Table, Form, Row, Col } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
-import { FaEye, FaPlus, FaTimes } from 'react-icons/fa'; // Mantengo los íconos aunque editar/eliminar no estén implementados
+import { FaEye, FaPlus, FaTimes } from 'react-icons/fa';
 
 const MySwal = withReactContent(Swal);
 
@@ -27,7 +28,7 @@ const METODOS_PAGO = ['Efectivo', 'Crédito', 'Débito', 'Transferencia', 'Debe'
 function Ventas() {
   const dispatch = useDispatch();
   const { ventas, loading, error } = useSelector(state => state.ventas);
-  const { stockItems } = useSelector(state => state.stock); // Asegúrate que esto trae stock con { include: [{ model: Producto }] }
+  const { stockItems } = useSelector(state => state.stock); // Asume que stockItems incluye la relación con producto
   const { clientes } = useSelector(state => state.clientes);
 
   const [showModal, setShowModal] = useState(false);
@@ -38,12 +39,25 @@ function Ventas() {
     fecha: new Date().toISOString().slice(0, 10),
     cliente_id: '',
     detalles: [], // [{ producto_id, cantidad, precio_unitario, subtotal }]
-    //total: 0, // El total se calcula en el backend, aunque lo mostramos en el frontend
-    metodo_pago: '', // Nuevo campo para método de pago
-    monto_pagado: 0, // Nuevo campo para monto pagado
+    metodo_pago: '',
+    monto_pagado: 0,
   });
 
-  // Agregar nuevo producto al detalle
+  // Optimización: Crear un mapa de productos a partir de stockItems para búsquedas O(1)
+  const stockItemsMap = useMemo(() => {
+    return stockItems.reduce((acc, item) => {
+      if (item.producto) { // Asegúrate de que el producto esté incluido
+        acc[item.producto_id] = item.producto;
+      }
+      return acc;
+    }, {});
+  }, [stockItems]);
+
+  // Función auxiliar para encontrar el producto por su ID usando el mapa optimizado
+  const getProductInfoFromStock = useCallback((productId) => {
+    return stockItemsMap[parseInt(productId)];
+  }, [stockItemsMap]);
+
   const agregarProducto = useCallback(() => {
     setFormData(prev => ({
       ...prev,
@@ -51,7 +65,7 @@ function Ventas() {
         producto_id: '',
         cantidad: 1,
         precio_unitario: 0,
-        subtotal: 0 // Calculado en frontend y backend
+        subtotal: 0
       }]
     }));
   }, []);
@@ -59,18 +73,14 @@ function Ventas() {
   const eliminarProducto = useCallback((index) => {
     setFormData(prev => {
       const nuevosDetalles = prev.detalles.filter((_, i) => i !== index);
-      // Recalcular total después de eliminar un detalle
       const nuevoTotal = nuevosDetalles.reduce((sum, item) => sum + item.subtotal, 0);
-
-      // Ajustar monto_pagado si es mayor que el nuevo total (ej: si eliminas un producto y el monto pagado era el total anterior)
-      const nuevoMontoPagado = prev.monto_pagado > nuevoTotal ? nuevoTotal : prev.monto_pagado;
-
+      // Ajustar monto_pagado si el total de la venta disminuye
+      const nuevoMontoPagado = parseFloat(prev.monto_pagado) > nuevoTotal ? nuevoTotal : parseFloat(prev.monto_pagado) || 0;
 
       return {
         ...prev,
         detalles: nuevosDetalles,
-        //total: nuevoTotal, // Ya no usamos 'total' en el estado principal para envío
-        monto_pagado: nuevoMontoPagado, // Ajusta el monto pagado si excede el nuevo total
+        monto_pagado: nuevoMontoPagado, // Se recalcula el monto_pagado para no exceder el nuevo total
       };
     });
   }, []);
@@ -80,53 +90,72 @@ function Ventas() {
       const nuevosDetalles = [...prev.detalles];
       nuevosDetalles[index][campo] = valor;
 
+      // Si cambia el producto_id, actualiza el precio unitario predeterminado del stock
+      if (campo === 'producto_id' && valor) {
+        const selectedProduct = getProductInfoFromStock(valor);
+        if (selectedProduct) {
+          nuevosDetalles[index].precio_unitario = parseFloat(selectedProduct.precio);
+        } else {
+          nuevosDetalles[index].precio_unitario = 0; // Reset si no encuentra el producto
+        }
+      }
+
       // Recalcular subtotal si cambia cantidad o precio
-      if (campo === 'cantidad' || campo === 'precio_unitario') {
+      if (campo === 'cantidad' || campo === 'precio_unitario' || campo === 'producto_id') {
         const cantidad = parseFloat(nuevosDetalles[index].cantidad) || 0;
         const precio = parseFloat(nuevosDetalles[index].precio_unitario) || 0;
         nuevosDetalles[index].subtotal = cantidad * precio;
       }
 
-      // Recalcular total de la venta
-      const nuevoTotal = nuevosDetalles.reduce((sum, item) => sum + item.subtotal, 0);
-
-      // Ajustar monto_pagado si es mayor que el nuevo total (ej: si reduces cantidad y el monto pagado era el total anterior)
-      const nuevoMontoPagado = prev.monto_pagado > nuevoTotal ? nuevoTotal : prev.monto_pagado;
-
+      // Recalcular el total y ajustar monto_pagado
+      const nuevoTotal = nuevosDetalles.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0);
+      const nuevoMontoPagado = parseFloat(prev.monto_pagado) > nuevoTotal ? nuevoTotal : parseFloat(prev.monto_pagado) || 0;
 
       return {
         ...prev,
         detalles: nuevosDetalles,
-        //total: nuevoTotal, // Ya no usamos 'total' en el estado principal para envío
-        monto_pagado: nuevoMontoPagado, // Ajusta el monto pagado si excede el nuevo total
+        monto_pagado: nuevoMontoPagado,
       };
     });
-  }, []);
+  }, [getProductInfoFromStock]);
 
-  // Manejar cambios en los campos de pago
   const handlePaymentChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => {
       const newState = { ...prev, [name]: value };
 
-      // Si el método de pago es "Debe", el monto pagado debe ser 0
-      if (name === 'metodo_pago' && value === 'Debe') {
-        newState.monto_pagado = 0;
+      // Al cambiar el método de pago
+      if (name === 'metodo_pago') {
+        if (value === 'Debe') {
+          newState.monto_pagado = 0; // Si es "Debe", el monto pagado es 0
+        } else if (prev.metodo_pago === 'Debe' && parseFloat(prev.monto_pagado) === 0) {
+          // Si cambia de "Debe" a otro método y el monto era 0, inicializar con el total actual
+          const totalActual = newState.detalles.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0);
+          newState.monto_pagado = totalActual;
+        }
       }
-      // Si el monto pagado es mayor que el total (calculado desde los detalles), ajustarlo al total
+
+      // Ajuste para que monto_pagado no exceda el total ni sea negativo
       const totalActual = newState.detalles.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0);
-      if (name === 'monto_pagado' && parseFloat(value) > totalActual) {
-        newState.monto_pagado = totalActual;
+      if (name === 'monto_pagado') {
+        let parsedValue = parseFloat(value) || 0; // Si es NaN, se asume 0
+
+        if (parsedValue < 0) {
+          parsedValue = 0; // Evitar valores negativos
+        }
+        if (parsedValue > totalActual && newState.metodo_pago !== 'Debe') {
+          parsedValue = totalActual; // No permitir pagar más del total si no es "Debe"
+        }
+        newState.monto_pagado = parsedValue;
       }
+
       return newState;
     });
   }, []);
 
-
-  // Fetch data inicial
   useEffect(() => {
     dispatch(getVentas());
-    dispatch(getStock()); // Asegúrate que esta acción incluye el modelo Producto
+    dispatch(getStock());
     dispatch(getClientes());
   }, [dispatch]);
 
@@ -137,8 +166,7 @@ function Ventas() {
       fecha: new Date().toISOString().slice(0, 10),
       cliente_id: '',
       detalles: [],
-      //total: 0, // Resetear el total en el estado ya no es necesario
-      metodo_pago: '', // Resetear campos de pago
+      metodo_pago: '',
       monto_pagado: 0,
     });
   }, []);
@@ -154,93 +182,110 @@ function Ventas() {
     setShowModal(true);
   }, []);
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
-    // Validaciones básicas
-    if (!formData.cliente_id || formData.detalles.length === 0) {
-      MySwal.fire({
-        icon: 'warning',
-        title: 'Campos Requeridos',
-        text: 'Seleccione un cliente y agregue al menos un producto',
-      });
-      return;
-    }
-
-    // Validar que se haya seleccionado un método de pago
-    if (!formData.metodo_pago) {
+    // Validaciones básicas del formulario
+    if (!formData.cliente_id) {
       MySwal.fire({
         icon: 'warning',
         title: 'Campo Requerido',
-        text: 'Seleccione un método de pago',
+        text: 'Seleccione un cliente.',
       });
       return;
     }
 
-    // Validar monto pagado si el método de pago no es "Debe"
-    if (formData.metodo_pago !== 'Debe' && (parseFloat(formData.monto_pagado) <= 0 || isNaN(parseFloat(formData.monto_pagado)))) {
+    if (formData.detalles.length === 0) {
       MySwal.fire({
         icon: 'warning',
-        title: 'Campo Requerido',
-        text: 'Ingrese un monto pagado válido',
+        title: 'Productos Requeridos',
+        text: 'Agregue al menos un producto a la venta.',
       });
       return;
     }
-    // Si el método es "Debe", asegurar que monto_pagado es 0
-    if (formData.metodo_pago === 'Debe') {
-      formData.monto_pagado = 0;
-    }
 
-
-    const ventaDataToSend = {
-      fecha: formData.fecha,
-      cliente_id: formData.cliente_id,
-      detalles: formData.detalles.map(detalle => ({
-        producto_id: parseInt(detalle.producto_id), // Asegurarse de enviar como número
-        cantidad: parseFloat(detalle.cantidad), // Asegurarse de enviar como número
-        precio_unitario: parseFloat(detalle.precio_unitario), // Asegurarse de enviar como número
-        subtotal: parseFloat(detalle.subtotal) // Asegurarse de enviar como número
-      })),
-      metodo_pago: formData.metodo_pago, // Incluir método de pago
-      monto_pagado: parseFloat(formData.monto_pagado) // Incluir monto pagado como número
-      // El total se calcula en el backend, no lo enviamos desde aquí
-    };
-
-    // Opcional: Validar que cada detalle tenga producto, cantidad > 0 y precio > 0
-    const detallesInvalidos = ventaDataToSend.detalles.some(detalle =>
-      !detalle.producto_id || detalle.cantidad <= 0 || detalle.precio_unitario <= 0 || detalle.subtotal <= 0
+    const detallesInvalidos = formData.detalles.some(detalle =>
+      !detalle.producto_id || parseFloat(detalle.cantidad) <= 0 || parseFloat(detalle.precio_unitario) <= 0
     );
 
     if (detallesInvalidos) {
       MySwal.fire({
         icon: 'warning',
         title: 'Detalles Inválidos',
-        text: 'Asegúrese de que cada producto tenga una cantidad y precio unitario válidos.',
+        text: 'Asegúrese de que cada producto tenga una cantidad y precio unitario válidos (mayores a cero).',
       });
       return;
     }
 
-
-    dispatch(addVenta(ventaDataToSend))
-      .then(() => {
-        MySwal.fire('Éxito', 'Venta registrada correctamente', 'success'); // Mensaje de éxito
-        handleCloseModal();
-        dispatch(getVentas()); // Recargar lista de ventas
-        dispatch(getStock()); // Recargar stock para reflejar cambios
-      })
-      .catch(err => {
-        // El backend ahora devuelve el mensaje de error específico
-        const errorMessage = err.response && err.response.data ? err.response.data : err.message;
-        MySwal.fire({
-          icon: 'error',
-          title: 'Error al registrar venta',
-          text: errorMessage,
-        });
+    if (!formData.metodo_pago) {
+      MySwal.fire({
+        icon: 'warning',
+        title: 'Campo Requerido',
+        text: 'Seleccione un método de pago.',
       });
-  }, [dispatch, formData, handleCloseModal]); // Dependencias actualizadas
+      return;
+    }
+
+    // Validar monto pagado si el método NO es "Debe"
+    if (formData.metodo_pago !== 'Debe' && (parseFloat(formData.monto_pagado) <= 0 || isNaN(parseFloat(formData.monto_pagado)))) {
+      MySwal.fire({
+        icon: 'warning',
+        title: 'Monto Pagado Inválido',
+        text: 'Para el método de pago seleccionado, el monto pagado debe ser mayor a cero.',
+      });
+      return;
+    }
+
+    // Validar stock disponible para cada producto
+    for (const detalle of formData.detalles) {
+      // Encuentra el item de stock para el producto_id actual
+      const stockItem = stockItems.find(item => item.producto_id === parseInt(detalle.producto_id));
+
+      if (!stockItem || stockItem.unidad < parseFloat(detalle.cantidad)) {
+        await MySwal.fire({
+          icon: 'error',
+          title: 'Stock Insuficiente',
+          text: `No hay suficiente stock para el producto: ${getProductInfoFromStock(detalle.producto_id)?.nombre || 'Desconocido'}. Disponible: ${stockItem ? stockItem.unidad : 0}. Solicitado: ${detalle.cantidad}.`,
+        });
+        return;
+      }
+    }
+
+    // Preparar los datos para enviar al backend
+    const ventaDataToSend = {
+      fecha: formData.fecha,
+      cliente_id: parseInt(formData.cliente_id),
+      detalles: formData.detalles.map(detalle => ({
+        producto_id: parseInt(detalle.producto_id),
+        cantidad: parseFloat(detalle.cantidad),
+        precio_unitario: parseFloat(detalle.precio_unitario),
+        subtotal: parseFloat(detalle.subtotal) // Ya calculado en el frontend
+      })),
+      metodo_pago: formData.metodo_pago,
+      monto_pagado: parseFloat(formData.monto_pagado),
+      // El total de la venta (total_venta) y la deuda (monto_deuda)
+      // deben ser calculados en el backend para mayor seguridad y consistencia
+      // pero si los envías desde el frontend, el backend debe validarlos.
+      // Aquí, asumimos que el backend recalcula el total basado en los detalles.
+    };
+
+    try {
+      await dispatch(addVenta(ventaDataToSend));
+      MySwal.fire('Éxito', 'Venta registrada correctamente', 'success');
+      handleCloseModal();
+      dispatch(getVentas());
+      dispatch(getStock()); // Recargar stock para reflejar los cambios
+    } catch (err) {
+      const errorMessage = err.response && err.response.data && err.response.data.message ? err.response.data.message : err.message || 'Error desconocido';
+      MySwal.fire({
+        icon: 'error',
+        title: 'Error al registrar venta',
+        text: errorMessage,
+      });
+    }
+  }, [dispatch, formData, handleCloseModal, getProductInfoFromStock, stockItems]);
 
   const renderModalBody = useCallback(() => {
-    // Calcular el total en el frontend solo para mostrarlo en el formulario
     const totalFrontend = formData.detalles.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0);
 
     // Modo VIEW
@@ -251,30 +296,30 @@ function Ventas() {
             <Col md={6}><strong>ID Venta:</strong> {currentVenta.id}</Col>
             <Col md={6}><strong>Fecha:</strong> {currentVenta.fecha?.split('T')[0]}</Col>
             <Col md={12} className="mt-3">
-              <strong>Cliente:</strong> {currentVenta.cliente?.nombre} {currentVenta.cliente?.apellido}
+              <strong>Cliente:</strong> {currentVenta.cliente?.nombre_apellido || 'N/A'}
             </Col>
             <Col md={12} className="mt-3">
               <strong>Productos:</strong>
               <ul>
                 {currentVenta.detalles?.map((detalle, index) => (
                   <li key={index}>
-                    {detalle.producto?.nombre} -
+                    {detalle.producto?.nombre || 'Producto Desconocido'} -
                     {detalle.cantidad} x ${parseFloat(detalle.precio_unitario).toFixed(2)} = ${parseFloat(detalle.subtotal).toFixed(2)}
                   </li>
                 ))}
               </ul>
             </Col>
             <Col md={12} className="mt-3">
-              <strong>Total Venta:</strong> ${parseFloat(currentVenta.total)?.toFixed(2)}
+              <strong>Total Venta:</strong> ${parseFloat(currentVenta.total)?.toFixed(2) || '0.00'}
             </Col>
             <Col md={12}>
               <strong>Método de Pago:</strong> {currentVenta.metodo_pago}
             </Col>
             <Col md={12}>
-              <strong>Monto Pagado:</strong> ${parseFloat(currentVenta.monto_pagado)?.toFixed(2)}
+              <strong>Monto Pagado:</strong> ${parseFloat(currentVenta.monto_pagado)?.toFixed(2) || '0.00'}
             </Col>
             <Col md={12}>
-              <strong>Monto Adeudado:</strong> ${parseFloat(currentVenta.monto_deuda)?.toFixed(2)}
+              <strong>Monto Adeudado:</strong> ${parseFloat(currentVenta.monto_deuda)?.toFixed(2) || '0.00'}
             </Col>
           </Row>
         </div>
@@ -295,22 +340,22 @@ function Ventas() {
           />
         </Form.Group>
 
-       <Form.Group className="mb-3">
-          <Form.Label>Cliente</Form.Label>
-          <Form.Control
-            as="select"
-            value={formData.cliente_id}
-            onChange={(e) => setFormData(prev => ({ ...prev, cliente_id: e.target.value }))}
-            required
-          >
-            <option value="">Seleccione un cliente</option>
-            {clientes?.map(cliente => (
-              <option key={cliente.id} value={cliente.id}>
-                {cliente.nombre_apellido} {/* <-- Corregido aquí */}
-              </option>
-            ))}
-          </Form.Control>
-        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Cliente</Form.Label>
+          <Form.Control
+            as="select"
+            value={formData.cliente_id}
+            onChange={(e) => setFormData(prev => ({ ...prev, cliente_id: e.target.value }))}
+            required
+          >
+            <option value="">Seleccione un cliente</option>
+            {clientes?.map(cliente => (
+              <option key={cliente.id} value={cliente.id}>
+                {cliente.nombre_apellido}
+              </option>
+            ))}
+          </Form.Control>
+        </Form.Group>
 
         <div className="mb-3">
           <div className="d-flex justify-content-between align-items-center mb-2">
@@ -323,7 +368,7 @@ function Ventas() {
           {formData.detalles.map((detalle, index) => (
             <div key={index} className="border p-3 mb-3">
               <Row className="align-items-center">
-                <Col md={4}> {/* Ajustado el tamaño de columna */}
+                <Col md={4}>
                   <Form.Group>
                     <Form.Label>Producto</Form.Label>
                     <Form.Control
@@ -333,25 +378,24 @@ function Ventas() {
                       required
                     >
                       <option value="">Seleccione producto</option>
-                      {/* Asegúrate que stockItems tiene la relación 'producto' cargada */}
-                      {stockItems?.filter(item => item.unidad > 0).map(item => ( // Solo mostrar productos con stock > 0
+                      {stockItems?.filter(item => item.unidad > 0).map(item => (
                         <option
                           key={item.producto_id}
                           value={item.producto_id}
                         >
-                          {item.producto?.nombre} (Stock: {item.unidad} {item.producto?.presentacion_unidad}) {/* Muestra unidad de stock */}
+                          {item.producto?.nombre} (Stock: {item.unidad} {item.producto?.medida})
                         </option>
                       ))}
                     </Form.Control>
                   </Form.Group>
                 </Col>
 
-                <Col md={2}> {/* Ajustado el tamaño de columna */}
+                <Col md={3}>
                   <Form.Group>
                     <Form.Label>Cantidad</Form.Label>
                     <Form.Control
                       type="number"
-                      min="0.01" // Permitir cantidades decimales si aplica (ej: kg, lts)
+                      min="0.01"
                       step="0.01"
                       value={detalle.cantidad}
                       onChange={(e) => actualizarDetalle(index, 'cantidad', e.target.value)}
@@ -360,7 +404,7 @@ function Ventas() {
                   </Form.Group>
                 </Col>
 
-                <Col md={3}> {/* Ajustado el tamaño de columna */}
+                <Col md={3}>
                   <Form.Group>
                     <Form.Label>Precio Unitario</Form.Label>
                     <Form.Control
@@ -370,11 +414,12 @@ function Ventas() {
                       value={detalle.precio_unitario}
                       onChange={(e) => actualizarDetalle(index, 'precio_unitario', e.target.value)}
                       required
+                      // NOTA: 'readOnly' se ha eliminado aquí para permitir la edición manual del precio.
                     />
                   </Form.Group>
                 </Col>
 
-                <Col md={2} className="d-flex align-items-end"> {/* Ajustado el tamaño de columna */}
+                <Col md={2} className="d-flex align-items-end">
                   <Button
                     variant="danger"
                     size="sm"
@@ -391,12 +436,11 @@ function Ventas() {
           ))}
           {formData.detalles.length > 0 && (
             <div className="h4 text-end mt-3">
-              Total a pagar: ${totalFrontend.toFixed(2)} {/* Mostrar total calculado en frontend */}
+              Total a pagar: ${totalFrontend.toFixed(2)}
             </div>
           )}
         </div>
 
-        {/* Nuevos campos para Método de Pago y Monto Pagado */}
         <Row className="mb-3">
           <Col md={6}>
             <Form.Group>
@@ -415,7 +459,7 @@ function Ventas() {
               </Form.Control>
             </Form.Group>
           </Col>
-          {formData.metodo_pago !== 'Debe' && ( // Mostrar monto pagado solo si el método no es "Debe"
+          {formData.metodo_pago !== 'Debe' && (
             <Col md={6}>
               <Form.Group>
                 <Form.Label>Monto Pagado</Form.Label>
@@ -423,7 +467,7 @@ function Ventas() {
                   type="number"
                   name="monto_pagado"
                   min="0"
-                  step="0.01"
+                  step="0.01" // Asegura que se puedan ingresar centavos
                   value={formData.monto_pagado}
                   onChange={handlePaymentChange}
                   required // Requerido si el método no es "Debe"
@@ -435,32 +479,17 @@ function Ventas() {
 
         {formData.metodo_pago === 'Debe' && totalFrontend > 0 && (
           <div className="h5 text-danger text-end mt-3">
-            Adeuda: ${totalFrontend.toFixed(2)} {/* Si es "Debe", muestra el total como deuda */}
+            Adeuda: ${totalFrontend.toFixed(2)}
           </div>
         )}
         {formData.metodo_pago !== 'Debe' && totalFrontend > (parseFloat(formData.monto_pagado) || 0) && (
           <div className="h5 text-warning text-end mt-3">
-            Adeuda Parcial: ${(totalFrontend - (parseFloat(formData.monto_pagado) || 0)).toFixed(2)} {/* Muestra deuda parcial */}
+            Adeuda Parcial: ${(totalFrontend - (parseFloat(formData.monto_pagado) || 0)).toFixed(2)}
           </div>
         )}
-
-
       </Form>
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    modalMode,
-    currentVenta,
-    clientes,
-    stockItems, // Asegúrate que stockItems tenga la relación producto cargada
-    formData,
-    handleSubmit,
-    handleCloseModal,
-    agregarProducto,
-    eliminarProducto,
-    actualizarDetalle,
-    handlePaymentChange, // Agregar la nueva función de manejo de pago
-  ]);
+  }, [modalMode, currentVenta, clientes, stockItems, formData, handleSubmit, agregarProducto, eliminarProducto, actualizarDetalle, handlePaymentChange]);
 
   return (
     <div className="ventas-page">
@@ -472,16 +501,16 @@ function Ventas() {
       {loading ? <Loader /> : error ? (
         <div className="alert alert-danger">{error}</div>
       ) : (
-        <Table striped bordered hover>
+        <Table striped bordered hover responsive> {/* Añadido responsive para mejor visualización en pantallas pequeñas */}
           <thead>
             <tr>
               <th>ID</th>
               <th>Fecha</th>
               <th>Cliente</th>
-              <th>Productos</th> {/* Quizás cambiar a "Detalles" */}
+              <th>Productos</th>
               <th>Total</th>
-              <th>Método Pago</th> {/* Nuevo */}
-              <th>Deuda</th> {/* Nuevo */}
+              <th>Método Pago</th>
+              <th>Deuda</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -490,22 +519,21 @@ function Ventas() {
               <tr key={venta.id}>
                 <td>{venta.id}</td>
                 <td>{venta.fecha?.split('T')[0]}</td>
-                <td>{venta.cliente?.nombre_apellido}</td> {/* Usar nombre y apellido */}
+                <td>{venta.cliente?.nombre_apellido || 'N/A'}</td>
                 <td>
-                  {/* Mostrar un resumen de productos */}
                   {venta.detalles?.length > 0 ? (
                     <ul>
                       {venta.detalles.map((detalle, i) => (
                         <li key={i}>
-                          {detalle.producto?.nombre} ({detalle.cantidad})
+                          {detalle.producto?.nombre || 'Producto Desconocido'} ({detalle.cantidad})
                         </li>
                       ))}
                     </ul>
                   ) : 'Sin detalles'}
                 </td>
-                <td>${parseFloat(venta.total)?.toFixed(2)}</td>
-                <td>{venta.metodo_pago}</td> {/* Mostrar método de pago */}
-                <td>${parseFloat(venta.monto_deuda)?.toFixed(2)}</td> {/* Mostrar monto adeudado */}
+                <td>${parseFloat(venta.total)?.toFixed(2) || '0.00'}</td>
+                <td>{venta.metodo_pago}</td>
+                <td>${parseFloat(venta.monto_deuda)?.toFixed(2) || '0.00'}</td>
                 <td>
                   <Button
                     variant="info"
@@ -515,9 +543,6 @@ function Ventas() {
                   >
                     <FaEye /> Ver
                   </Button>
-                  {/* Botones de editar y eliminar (inactivos por ahora) */}
-                  {/* <Button variant="warning" size="sm" className="me-1" disabled><FaEdit /> Editar</Button>
-                  <Button variant="danger" size="sm" disabled><FaTrash /> Eliminar</Button> */}
                 </td>
               </tr>
             ))}

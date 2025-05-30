@@ -8,7 +8,6 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'cliente_id',
         as: 'ventas' 
       });
-
     }
   }
 

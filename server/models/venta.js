@@ -1,3 +1,4 @@
+// server/models/venta.js
 import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
@@ -49,7 +50,7 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0.00
     },
-    monto_deuda: {
+    monto_deuda: { // Esto es el monto de deuda de esta VENTA específica
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0.00

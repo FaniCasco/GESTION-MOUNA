@@ -1,51 +1,97 @@
 ```
+└── 📁server
+    └── 📁config
+        └── config.js
+        └── database.json
+        └── db.js
+    └── 📁middleware
+        └── errorHandler.js
+    └── 📁migrations
+        └── 20250513121023-create-cliente.cjs
+        └── 20250513121030-create-producto.cjs
+        └── 20250513121038-create-proveedor.cjs
+        └── 20250513161813-create-detalle-ventas.cjs
+        └── 20250513161846-remove-product-fields-from-ventas.cjs
+        └── 20250514195531-add-createdat-to-clientes.cjs
+        └── 20250523194005-add-metodo-pago-monto-a-ventas.cjs
+        └── 20250527155642-add-id-to-stock.cjs
+        └── 20250527172644-alter-detalleventas-add-producto-id.cjs
+        └── 20250527173549-add-medida-to-productos.cjs
+    └── 📁models
+        └── cliente.js
+        └── detalleventa.js
+        └── index.js
+        └── producto.js
+        └── proveedor.js
+        └── stock.js
+        └── venta.js
+    └── 📁seeders
+    └── 📁src
+        └── app.js
+        └── 📁controllers
+            └── clientesController.js
+            └── productosController.js
+            └── proveedoresController.js
+            └── stockController.js
+            └── ventasController.js
+        └── 📁routes
+            └── clientes.routes.js
+            └── productos.routes.js
+            └── proveedores.routes.js
+            └── stock.routes.js
+            └── ventas.routes.js
+    └── .env
+    └── .gitignore
+    └── package-lock.json
+    └── package.json
+```
 └── 📁gestion
     └── 📁public
-        └── favicon.ico
+        └── favicon.png
         └── index.html
         └── manifest.json
     └── 📁src
         └── App.css
         └── App.js
-        └── App.test.js
         └── 📁assets
+            └── 📁images
+                └── mouna-green.png
+                └── mouna-pink.png
         └── 📁components
             └── Button.jsx
             └── Clientes.jsx
+            └── Footer.jsx
             └── Loader.jsx
             └── Modal.jsx
             └── Navbar.jsx
+            └── Productos.jsx
             └── Proveedores.jsx
             └── Sidebar.jsx
+            └── Stock.jsx
             └── Ventas.jsx
+        └── Footer.css
         └── index.css
         └── index.js
+        └── Proveedores.css
         └── 📁redux
             └── 📁actions
                 └── actionTypes.js
                 └── clientesActions.js
+                └── productosActions.js
+                └── proveedoresActions.js
+                └── stockActions.js
+                └── ventasActions.js
             └── 📁reducers
                 └── clientesReducer.js
+                └── index.js
+                └── productosReducer.js
+                └── proveedoresReducer.js
+                └── stockReducer.js
+                └── ventasReducer.js
             └── store.js
-        └── reportWebVitals.js
     └── .env
     └── .gitignore
     └── package-lock.json
     └── package.json
     └── README.md
-└── 📁server
-    └── 📁src
-        └── app.js
-        └── 📁config
-            └── db.js
-        └── 📁controllers
-            └── clientesController.js
-        └── 📁models
-            └── Cliente.js
-        └── 📁routes
-            └── clientes.routes.js
-    └── .env
-    └── .gitignore
-    └── package-lock.json
-    └── package.json
 ```
